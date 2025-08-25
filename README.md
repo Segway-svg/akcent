@@ -1,4 +1,6 @@
-<img width="805" height="365" alt="image" src="https://github.com/user-attachments/assets/ed9ab5e2-deaf-438d-be39-58464ececac7" /># Важная информация
+# Важная информация
+
+<img width="805" height="365" alt="image" src="https://github.com/user-attachments/assets/ed9ab5e2-deaf-438d-be39-58464ececac7" />
 
 Для запуска приложения необходимо установить следующие NUGET-пакеты:
 
