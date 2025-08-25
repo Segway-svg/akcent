@@ -1,0 +1,158 @@
+CREATE TABLE [dbo].[status](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[name] [varchar](100) NOT NULL,
+ CONSTRAINT [PK_status] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+INSERT INTO status (name) VALUES ('Работает')
+INSERT INTO status (name) VALUES ('Уволен')
+INSERT INTO status (name) VALUES ('В отпуске')
+
+CREATE TABLE [dbo].[posts](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[name] [varchar](100) NOT NULL,
+ CONSTRAINT [PK_posts] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+INSERT INTO posts (name) VALUES ('Статья по Python')
+INSERT INTO posts (name) VALUES ('Статья по C#')
+
+CREATE TABLE [dbo].[deps](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[name] [varchar](100) NOT NULL,
+ CONSTRAINT [PK_deps] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+INSERT INTO deps (name) VALUES ('Рога и Копыта')
+INSERT INTO deps (name) VALUES ('Акцент')
+
+CREATE TABLE [dbo].[persons](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[first_name] [varchar](100) NOT NULL,
+	[second_name] [varchar](100) NOT NULL,
+	[last_name] [varchar](100) NOT NULL,
+	[date_employ] [datetime] NULL,
+	[date_uneploy] [datetime] NULL,
+	[status] [int] NOT NULL,
+	[id_dep] [int] NOT NULL,
+	[id_post] [int] NOT NULL,
+ CONSTRAINT [PK_persons] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+
+INSERT INTO persons (first_name, second_name, last_name, date_employ, date_uneploy, status, id_dep, id_post) 
+VALUES ('Сесин', 'Иван', 'Сергеевич', '15.12.23', null, 1, 2, 2)
+
+INSERT INTO persons (first_name, second_name, last_name, date_employ, date_uneploy, status, id_dep, id_post) 
+VALUES ('Никаев', 'Олег', 'Евгеньевич', '15.01.24', null, 3, 1, 1)
+
+INSERT INTO persons (first_name, second_name, last_name, date_employ, date_uneploy, status, id_dep, id_post) 
+VALUES ('Иванов', 'Андрей', 'Анатольевич', '14.02.22', '22.05.25', 2, 1, 1)
+
+
+CREATE PROCEDURE sp_GetEmployees
+    @StatusId INT = NULL,
+    @DepartmentId INT = NULL,
+    @PostId INT = NULL,
+    @LastNamePart NVARCHAR(100) = NULL,
+    @SortBy NVARCHAR(50) = 'FullName',
+    @SortAscending BIT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @SQL NVARCHAR(MAX);
+    
+    SET @SQL = N'
+    SELECT 
+        p.id as Id,
+        CONCAT(p.last_name, '' '', LEFT(p.first_name, 1), ''.'', LEFT(p.second_name, 1), ''.'') as FullName,
+        s.name as StatusName,
+        d.name as DepartmentName,
+        pt.name as PostName,
+        p.date_employ as DateEmploy,
+        p.date_uneploy as DateUnemploy
+    FROM persons p
+    INNER JOIN status s ON p.status = s.id
+    INNER JOIN deps d ON p.id_dep = d.id
+    INNER JOIN posts pt ON p.id_post = pt.id
+    WHERE 1=1' +
+    CASE WHEN @StatusId IS NOT NULL THEN ' AND p.status = @StatusId' ELSE '' END +
+    CASE WHEN @DepartmentId IS NOT NULL THEN ' AND p.id_dep = @DepartmentId' ELSE '' END +
+    CASE WHEN @PostId IS NOT NULL THEN ' AND p.id_post = @PostId' ELSE '' END +
+    CASE WHEN @LastNamePart IS NOT NULL THEN ' AND p.last_name LIKE ''%'' + @LastNamePart + ''%''' ELSE '' END +
+    ' ORDER BY ' + 
+    CASE @SortBy
+        WHEN 'FullName' THEN 'p.last_name, p.first_name, p.second_name'
+        WHEN 'StatusName' THEN 's.name'
+        WHEN 'DepartmentName' THEN 'd.name'
+        WHEN 'PostName' THEN 'pt.name'
+        WHEN 'DateEmploy' THEN 'p.date_employ'
+        WHEN 'DateUnemploy' THEN 'p.date_uneploy'
+        ELSE 'p.last_name, p.first_name, p.second_name'
+    END +
+    CASE WHEN @SortAscending = 1 THEN ' ASC' ELSE ' DESC' END;
+    
+    EXEC sp_executesql @SQL, 
+        N'@StatusId INT, @DepartmentId INT, @PostId INT, @LastNamePart NVARCHAR(100)',
+        @StatusId, @DepartmentId, @PostId, @LastNamePart;
+END
+GO
+
+CREATE PROCEDURE sp_GetStatuses
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT id, name FROM status ORDER BY name;
+END
+GO
+
+CREATE PROCEDURE sp_GetDepartments
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT id, name FROM deps ORDER BY name;
+END
+GO
+
+CREATE PROCEDURE sp_GetPosts
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT id, name FROM posts ORDER BY name;
+END
+GO
+
+select * from status
+select * from posts
+select * from deps
+select * from persons
+
+SELECT 
+	p.first_name,
+	p.second_name,
+	p.last_name,
+	p.date_employ,
+	p.date_uneploy,
+	p.status,
+	p.id_dep,
+	p.id_post
+FROM persons p
+
+--exec.sp_GetPosts
+
+--EXEC sp_GetEmployees @SortBy = 'Id', @SortAscending = 0
+
+
