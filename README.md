@@ -1,16 +1,17 @@
 # Важная информация
 
-
 Для запуска приложения необходимо установить следующие NUGET-пакеты:
 
 <img width="1171" height="322" alt="image" src="https://github.com/user-attachments/assets/061399f2-0757-41e2-8eaf-fe832fe44ef6" />
+
+Также перед запуском необходимо запустить запросы на создание таблиц, их заполнение и процедуру
+Скрипты находятся в файле *procedures.txt*
 
 Протестировать приложение можно через Swagger:
 
 <img width="1618" height="928" alt="image" src="https://github.com/user-attachments/assets/bd1dd367-72a7-4b42-b473-6e0be02dba4b" />
 
-
-Пример успешного запроса:
+Пример успешного запроса 1-го задания:
 
 <img width="1416" height="400" alt="image" src="https://github.com/user-attachments/assets/0467a69e-a361-4e13-9b98-45ed20bc69f8" />
 
@@ -34,4 +35,4 @@ DI и прочие настройки проекта располагаются 
 
 <img width="778" height="765" alt="image" src="https://github.com/user-attachments/assets/12445d34-0700-4dee-b90b-c580a4aad3c1" />
 
-Таблицы, их заполнение и процедуры находятся в файле *procedures.txt*
+
